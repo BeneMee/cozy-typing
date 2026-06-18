@@ -58,6 +58,10 @@ function loadNextSentence() {
   state.prevSentence = state.sentence;
   state.typed = "";
   renderSentence();
+  const s = el("sentence");
+  s.classList.remove("fade-in");
+  void s.offsetWidth;        // force reflow so the animation restarts
+  s.classList.add("fade-in");
 }
 
 function startGame() {
