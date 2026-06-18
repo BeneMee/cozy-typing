@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cozy Typing</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="ambient" aria-hidden="true"></div>
+
+  <main class="card">
+    <!-- START -->
+    <section id="screen-start" class="screen">
+      <h1 class="title">Cozy&nbsp;Typing</h1>
+      <p class="subtitle">Type as many sentences as you can in 60 seconds.</p>
+      <ul class="howto">
+        <li>Sentences appear one at a time — just start typing.</li>
+        <li>The timer starts on your first keystroke.</li>
+        <li>Backspace to fix mistakes. Chase your best WPM.</li>
+      </ul>
+      <p class="best">Best: <span id="best-display">—</span></p>
+      <button id="start-btn" class="btn">Start</button>
+    </section>
+
+    <!-- GAME -->
+    <section id="screen-game" class="screen" hidden>
+      <div class="hud">
+        <div class="hud-item"><span class="hud-num" id="timer">60</span><span class="hud-label">seconds</span></div>
+        <div class="hud-item"><span class="hud-num" id="live-wpm">0</span><span class="hud-label">wpm</span></div>
+        <div class="hud-item"><span class="hud-num" id="live-acc">100</span><span class="hud-label">% acc</span></div>
+      </div>
+      <p id="sentence" class="sentence"></p>
+      <input id="hidden-input" class="hidden-input" type="text" autocomplete="off"
+             autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="Type here" />
+      <p class="hint">Click here if typing stops registering.</p>
+    </section>
+
+    <!-- RESULTS -->
+    <section id="screen-results" class="screen" hidden>
+      <h2 class="results-title">Time!</h2>
+      <div id="newbest" class="newbest" hidden>✨ New personal best! ✨</div>
+      <div class="results-grid">
+        <div class="result"><span class="result-num" id="final-wpm">0</span><span class="result-label">WPM</span></div>
+        <div class="result"><span class="result-num" id="final-acc">0</span><span class="result-label">% accuracy</span></div>
+        <div class="result"><span class="result-num" id="final-chars">0</span><span class="result-label">characters</span></div>
+      </div>
+      <div class="results-actions">
+        <button id="again-btn" class="btn">Play Again</button>
+        <button id="menu-btn" class="btn btn-ghost">Back to Menu</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="sentences.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
