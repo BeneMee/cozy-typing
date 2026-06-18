@@ -87,8 +87,18 @@ el("screen-game").addEventListener("click", () => {
   if (state.screen === "game") el("hidden-input").focus();
 });
 
-// Placeholder; Task 5 replaces this with the timer start.
-let onFirstKeystroke = function () {};
+function onFirstKeystroke() {
+  state.startTime = Date.now();
+  state.timerId = setInterval(tick, 250);
+}
+
+function tick() {
+  const elapsed = (Date.now() - state.startTime) / 1000;
+  state.remaining = Math.max(0, SPRINT_SECONDS - elapsed);
+  el("timer").textContent = String(Math.ceil(state.remaining));
+  updateLiveStats();
+  if (state.remaining <= 0) endGame();
+}
 
 // Count a single newly-typed character against the keystroke tallies.
 function tallyKeystroke(typedChar, expectedChar) {
@@ -148,9 +158,53 @@ function handleInput(value) {
   updateLiveStats();
 }
 
-// Live stats are fully implemented in Task 5; declared here so handleInput runs.
-let updateLiveStats = function () {};
+function elapsedMinutes() {
+  if (!state.startTime) return 0;
+  const sec = Math.min(SPRINT_SECONDS, (Date.now() - state.startTime) / 1000);
+  return sec / 60;
+}
+
+function computeWpm() {
+  const mins = elapsedMinutes();
+  if (mins <= 0 || state.correctChars <= 0) return 0;
+  return Math.round((state.correctChars / 5) / mins);
+}
+
+function computeAccuracy() {
+  if (state.totalKeys === 0) return 0;
+  return Math.round((state.correctKeys / state.totalKeys) * 100);
+}
+
+function updateLiveStats() {
+  el("live-wpm").textContent = String(computeWpm());
+  el("live-acc").textContent = String(state.totalKeys === 0 ? 100 : computeAccuracy());
+}
 
 el("hidden-input").addEventListener("input", (e) => handleInput(e.target.value));
+
+// Task 6 replaces this with persistence + celebration.
+let finishResults = function (wpm, acc, chars) {
+  el("final-wpm").textContent = String(wpm);
+  el("final-acc").textContent = String(acc);
+  el("final-chars").textContent = String(chars);
+  el("newbest").hidden = true;
+};
+
+function endGame() {
+  if (state.timerId) { clearInterval(state.timerId); state.timerId = null; }
+  el("hidden-input").blur();
+  const wpm = computeWpm();
+  const acc = computeAccuracy();
+  const chars = state.correctChars;
+  showScreen("results");
+  finishResults(wpm, acc, chars);
+}
+
+// Wire results buttons.
+el("again-btn").addEventListener("click", startGame);
+el("menu-btn").addEventListener("click", () => {
+  el("best-display").textContent = el("best-display").textContent; // refreshed in Task 6
+  showScreen("start");
+});
 
 console.log("Cozy Typing ready.");
