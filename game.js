@@ -182,13 +182,60 @@ function updateLiveStats() {
 
 el("hidden-input").addEventListener("input", (e) => handleInput(e.target.value));
 
-// Task 6 replaces this with persistence + celebration.
-let finishResults = function (wpm, acc, chars) {
+const BEST_KEY = "cozytype.best";
+
+function loadBest() {
+  try {
+    const raw = localStorage.getItem(BEST_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (typeof parsed.wpm !== "number") return null;
+    return parsed;
+  } catch (e) {
+    return null;
+  }
+}
+
+function saveBest(record) {
+  try {
+    localStorage.setItem(BEST_KEY, JSON.stringify(record));
+  } catch (e) {
+    /* storage unavailable — play continues without persistence */
+  }
+}
+
+function formatBest() {
+  const best = loadBest();
+  if (!best) return "—";
+  return `${best.wpm} WPM · ${best.accuracy}% acc`;
+}
+
+function refreshBestDisplay() {
+  el("best-display").textContent = formatBest();
+}
+
+function todayISO() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function finishResults(wpm, acc, chars) {
   el("final-wpm").textContent = String(wpm);
   el("final-acc").textContent = String(acc);
   el("final-chars").textContent = String(chars);
-  el("newbest").hidden = true;
-};
+
+  const best = loadBest();
+  const isNewBest = !best || wpm > best.wpm;
+  if (isNewBest && wpm > 0) {
+    saveBest({ wpm, accuracy: acc, date: todayISO() });
+    el("newbest").hidden = false;
+    el("newbest").classList.remove("shimmer"); // restart animation
+    void el("newbest").offsetWidth;             // force reflow
+    el("newbest").classList.add("shimmer");
+  } else {
+    el("newbest").hidden = true;
+  }
+  refreshBestDisplay();
+}
 
 function endGame() {
   if (state.timerId) { clearInterval(state.timerId); state.timerId = null; }
@@ -203,8 +250,9 @@ function endGame() {
 // Wire results buttons.
 el("again-btn").addEventListener("click", startGame);
 el("menu-btn").addEventListener("click", () => {
-  el("best-display").textContent = el("best-display").textContent; // refreshed in Task 6
+  refreshBestDisplay();
   showScreen("start");
 });
 
+refreshBestDisplay();
 console.log("Cozy Typing ready.");
