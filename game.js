@@ -10,12 +10,15 @@ const state = {
   startTime: null,
   timerId: null,
   remaining: 60,
+  duration: 60,    // seconds for the run in progress (snapshot of selectedDuration)
   correctChars: 0, // correct chars across completed + current sentence
   totalKeys: 0,    // every printable keystroke (not backspace)
   correctKeys: 0,  // printable keystrokes that matched the expected char
 };
 
-const SPRINT_SECONDS = 60;
+// Sprint length chosen on the start screen (30 or 60). Snapshotted into
+// state.duration when a run starts so a mid-game toggle can't affect it.
+let selectedDuration = 60;
 
 function showScreen(name) {
   state.screen = name;
@@ -68,13 +71,14 @@ function startGame() {
   state.typed = "";
   state.prevSentence = null;
   state.startTime = null;
-  state.remaining = SPRINT_SECONDS;
+  state.duration = selectedDuration;
+  state.remaining = state.duration;
   state.correctChars = 0;
   completedCorrectChars = 0;
   state.totalKeys = 0;
   state.correctKeys = 0;
   if (state.timerId) { clearInterval(state.timerId); state.timerId = null; }
-  el("timer").textContent = String(SPRINT_SECONDS);
+  el("timer").textContent = String(state.duration);
   el("live-wpm").textContent = "0";
   el("live-acc").textContent = "100";
   showScreen("game");
@@ -98,7 +102,7 @@ function onFirstKeystroke() {
 
 function tick() {
   const elapsed = (Date.now() - state.startTime) / 1000;
-  state.remaining = Math.max(0, SPRINT_SECONDS - elapsed);
+  state.remaining = Math.max(0, state.duration - elapsed);
   el("timer").textContent = String(Math.ceil(state.remaining));
   updateLiveStats();
   if (state.remaining <= 0) endGame();
@@ -164,7 +168,7 @@ function handleInput(value) {
 
 function elapsedMinutes() {
   if (!state.startTime) return 0;
-  const sec = Math.min(SPRINT_SECONDS, (Date.now() - state.startTime) / 1000);
+  const sec = Math.min(state.duration, (Date.now() - state.startTime) / 1000);
   return sec / 60;
 }
 
@@ -188,34 +192,45 @@ el("hidden-input").addEventListener("input", (e) => handleInput(e.target.value))
 
 const BEST_KEY = "cozytype.best";
 
-function loadBest() {
+// Best scores are stored per duration: { "30": {wpm,accuracy,date}, "60": {...} }.
+function loadAllBest() {
   try {
     const raw = localStorage.getItem(BEST_KEY);
-    if (!raw) return null;
+    if (!raw) return {};
     const parsed = JSON.parse(raw);
-    if (typeof parsed.wpm !== "number") return null;
-    return parsed;
+    // Migrate the old single-record shape -> treat it as the 60s best.
+    if (parsed && typeof parsed.wpm === "number") {
+      return { "60": parsed };
+    }
+    return parsed && typeof parsed === "object" ? parsed : {};
   } catch (e) {
-    return null;
+    return {};
   }
 }
 
-function saveBest(record) {
+function loadBest(duration) {
+  return loadAllBest()[String(duration)] || null;
+}
+
+function saveBest(duration, record) {
   try {
-    localStorage.setItem(BEST_KEY, JSON.stringify(record));
+    const all = loadAllBest();
+    all[String(duration)] = record;
+    localStorage.setItem(BEST_KEY, JSON.stringify(all));
   } catch (e) {
     /* storage unavailable — play continues without persistence */
   }
 }
 
-function formatBest() {
-  const best = loadBest();
+function formatBest(duration) {
+  const best = loadBest(duration);
   if (!best) return "—";
   return `${best.wpm} WPM · ${best.accuracy}% acc`;
 }
 
 function refreshBestDisplay() {
-  el("best-display").textContent = formatBest();
+  el("best-display").textContent = formatBest(selectedDuration);
+  el("best-scope").textContent = `(${selectedDuration}s)`;
 }
 
 function todayISO() {
@@ -227,10 +242,10 @@ function finishResults(wpm, acc, chars) {
   el("final-acc").textContent = String(acc);
   el("final-chars").textContent = String(chars);
 
-  const best = loadBest();
+  const best = loadBest(state.duration);
   const isNewBest = !best || wpm > best.wpm;
   if (isNewBest && wpm > 0) {
-    saveBest({ wpm, accuracy: acc, date: todayISO() });
+    saveBest(state.duration, { wpm, accuracy: acc, date: todayISO() });
     el("newbest").hidden = false;
     el("newbest").classList.remove("shimmer"); // restart animation
     void el("newbest").offsetWidth;             // force reflow
@@ -257,6 +272,77 @@ el("menu-btn").addEventListener("click", () => {
   refreshBestDisplay();
   showScreen("start");
 });
+
+// ---- Duration selector (30s / 60s) ----
+document.querySelectorAll(".dur-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    selectedDuration = Number(btn.dataset.seconds);
+    document.querySelectorAll(".dur-btn").forEach((b) => b.classList.remove("is-active"));
+    btn.classList.add("is-active");
+    refreshBestDisplay();
+  });
+});
+
+// ---- Cozy particles (leaves + spores) ----
+const reduceMotion =
+  window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function rand(min, max) {
+  return min + Math.random() * (max - min);
+}
+
+function spawnLeaf() {
+  const host = el("particles");
+  if (!host) return;
+  const leaf = document.createElement("span");
+  leaf.className = "leaf";
+  const dur = rand(7, 13);
+  const size = rand(10, 20);
+  leaf.style.left = rand(-2, 100) + "vw";
+  leaf.style.width = size + "px";
+  leaf.style.height = size + "px";
+  leaf.style.setProperty("--dx", rand(-120, 160) + "px");
+  leaf.style.setProperty("--rot", rand(360, 900) + "deg");
+  leaf.style.animation = `leafFall ${dur}s linear forwards`;
+  leaf.addEventListener("animationend", () => leaf.remove());
+  host.appendChild(leaf);
+}
+
+function spawnSpore() {
+  const host = el("particles");
+  if (!host) return;
+  const spore = document.createElement("span");
+  spore.className = "spore";
+  const dur = rand(9, 16);
+  const size = rand(4, 9);
+  spore.style.left = rand(0, 100) + "vw";
+  spore.style.width = size + "px";
+  spore.style.height = size + "px";
+  spore.style.setProperty("--dx", rand(-80, 80) + "px");
+  spore.style.animation = `sporeRise ${dur}s linear forwards`;
+  spore.addEventListener("animationend", () => spore.remove());
+  host.appendChild(spore);
+}
+
+function startParticles() {
+  if (reduceMotion) return;
+  setInterval(spawnLeaf, 1200);
+  setInterval(spawnSpore, 2600);
+  // A few right away so the scene isn't empty after the intro.
+  for (let i = 0; i < 3; i++) setTimeout(spawnLeaf, i * 500);
+  for (let i = 0; i < 2; i++) setTimeout(spawnSpore, 800 + i * 700);
+}
+
+// ---- Intro: let the opening animation play, then settle ----
+if (reduceMotion) {
+  document.body.classList.remove("intro");
+  startParticles();
+} else {
+  // Begin drifting once the scene has risen in.
+  setTimeout(startParticles, 1600);
+  // Remove the intro class after the timeline so idle animations take over cleanly.
+  setTimeout(() => document.body.classList.remove("intro"), 2600);
+}
 
 refreshBestDisplay();
 console.log("Cozy Typing ready.");

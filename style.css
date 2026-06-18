@@ -1,18 +1,31 @@
 :root {
-  --bg: #2b211c;
-  --bg-warm: #3a2c24;
-  --card: #f6ead8;
-  --card-edge: #e7d4b8;
-  --ink: #4a3b30;
-  --ink-soft: #8a7159;
-  --amber: #d98e4a;
+  /* Card / text (warm) */
+  --card: rgba(248, 238, 222, 0.82);
+  --card-edge: rgba(255, 248, 235, 0.6);
+  --ink: #463528;
+  --ink-soft: #856b51;
+  --amber: #e3963f;
   --amber-deep: #c1702e;
-  --terracotta: #c96f4a;
-  --correct: #6f8f5a;
-  --wrong: #c25b54;
-  --muted: #c8b79c;
-  --radius: 22px;
+  --correct: #5b8a3c;
+  --wrong: #cf5a4e;
+  --muted: #b9a684;
+  --radius: 26px;
   --font: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+
+  /* Scene (BotW golden-hour) */
+  --sky-top: #aee0d6;
+  --sky-mid: #d8ecc9;
+  --sky-horizon: #f8dca6;
+  --sun: #fff2c8;
+  --sun-glow: #ffd277;
+  --hill-far: #b7d39a;
+  --hill-mid: #8fbf78;
+  --hill-near: #6aa45c;
+  --tree: #4f8348;
+  --tree-hi: #6fa45a;
+  --trunk: #7a5436;
+  --grass: #5c9a4e;
+  --spore: #fff4c2;
 }
 
 * { box-sizing: border-box; }
@@ -23,41 +36,151 @@ body {
   margin: 0;
   font-family: var(--font);
   color: var(--ink);
-  background: radial-gradient(circle at 30% 20%, var(--bg-warm), var(--bg));
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
   overflow: hidden;
+  background: var(--sky-horizon);
 }
 
-.ambient {
+/* ===================== SCENE ===================== */
+.scene {
   position: fixed;
-  inset: -20%;
-  background:
-    radial-gradient(40% 40% at 20% 30%, rgba(217,142,74,0.18), transparent 70%),
-    radial-gradient(45% 45% at 80% 70%, rgba(201,111,74,0.16), transparent 70%);
+  inset: 0;
   z-index: 0;
+  overflow: hidden;
 }
 
+.sky {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg,
+    var(--sky-top) 0%,
+    var(--sky-mid) 42%,
+    var(--sky-horizon) 100%);
+}
+
+.sun {
+  position: absolute;
+  top: 12%;
+  right: 16%;
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%,
+    var(--sun) 0%, var(--sun) 38%, var(--sun-glow) 55%, rgba(255,210,119,0) 72%);
+  filter: blur(2px);
+  animation: sunPulse 9s ease-in-out infinite;
+}
+
+.layer {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  bottom: 0;
+  display: block;
+}
+.hills-far  { height: 46vh; }
+.hills-mid  { height: 38vh; }
+.trees      { height: 34vh; }
+.hills-near { height: 26vh; }
+
+.hills-far path  { fill: var(--hill-far); }
+.hills-mid path  { fill: var(--hill-mid); }
+.hills-near path { fill: var(--hill-near); }
+
+.trees .trunk  { fill: var(--trunk); }
+.trees .canopy { fill: var(--tree); }
+.trees .canopy.hi { fill: var(--tree-hi); }
+.tree {
+  transform-box: fill-box;
+  transform-origin: bottom center;
+  animation: sway 6s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+
+/* Foreground grass */
+.grass {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 60px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  background: linear-gradient(180deg, rgba(92,154,78,0) 0%, var(--hill-near) 38%);
+}
+.blade {
+  width: 8px;
+  height: 34px;
+  background: var(--grass);
+  border-radius: 50% 50% 0 0 / 70% 70% 0 0;
+  transform-origin: bottom center;
+  animation: sway 4.5s ease-in-out infinite;
+  animation-delay: calc(var(--i) * -0.4s);
+  opacity: .9;
+}
+.blade:nth-child(3n)   { height: 26px; }
+.blade:nth-child(3n+1) { height: 44px; }
+.blade:nth-child(4n)   { height: 52px; }
+
+/* Particles (leaves + spores) */
+.particles { position: absolute; inset: 0; pointer-events: none; }
+
+.leaf {
+  position: absolute;
+  top: -40px;
+  width: 14px;
+  height: 14px;
+  background: linear-gradient(135deg, var(--tree-hi), var(--amber-deep));
+  border-radius: 0 100% 0 100%;
+  opacity: .85;
+  will-change: transform;
+}
+.spore {
+  position: absolute;
+  top: 100%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--spore);
+  box-shadow: 0 0 8px 3px rgba(255, 244, 194, 0.7);
+  opacity: .8;
+  will-change: transform;
+}
+
+/* ===================== CARD ===================== */
 .card {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   width: min(720px, 92vw);
   background: var(--card);
+  -webkit-backdrop-filter: blur(9px);
+  backdrop-filter: blur(9px);
   border: 1px solid var(--card-edge);
   border-radius: var(--radius);
-  box-shadow: 0 24px 60px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.4);
+  box-shadow:
+    0 28px 70px rgba(60, 40, 20, 0.32),
+    0 2px 0 rgba(255, 255, 255, 0.5) inset;
   padding: clamp(24px, 5vw, 48px);
 }
 
 .screen[hidden] { display: none; }
 
-.title { font-size: clamp(2rem, 6vw, 3rem); margin: 0 0 .25em; letter-spacing: .5px; }
+.title {
+  font-size: clamp(2rem, 6vw, 3rem);
+  margin: 0 0 .25em;
+  letter-spacing: .5px;
+  color: var(--ink);
+}
+.title span { display: inline-block; }
 .subtitle { color: var(--ink-soft); margin: 0 0 1.25em; font-size: 1.1rem; }
 .howto { color: var(--ink-soft); line-height: 1.7; padding-left: 1.1em; margin: 0 0 1.5em; }
-.best { font-size: 1.15rem; margin: 0 0 1.5em; }
+.best { font-size: 1.15rem; margin: 1.25em 0 1.25em; }
 #best-display { color: var(--amber-deep); font-weight: bold; }
+#best-scope { color: var(--ink-soft); font-size: .9em; }
 
 .btn {
   font-family: var(--font);
@@ -73,6 +196,7 @@ body {
 }
 .btn:hover { transform: translateY(-2px); box-shadow: 0 12px 26px rgba(193,112,46,0.5); }
 .btn:active { transform: translateY(0); }
+.btn:focus-visible { outline: 3px solid var(--amber-deep); outline-offset: 3px; }
 .btn-ghost {
   background: transparent;
   color: var(--ink-soft);
@@ -80,6 +204,38 @@ body {
   border: 1px solid var(--card-edge);
 }
 .btn-ghost:hover { box-shadow: none; color: var(--ink); }
+
+/* Duration selector */
+.duration-select {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  margin: 0 0 .5em;
+}
+.duration-label {
+  color: var(--ink-soft);
+  font-size: 1rem;
+  margin-right: .2rem;
+}
+.dur-btn {
+  font-family: var(--font);
+  font-size: 1rem;
+  color: var(--ink-soft);
+  background: rgba(255, 255, 255, 0.35);
+  border: 1px solid var(--card-edge);
+  border-radius: 999px;
+  padding: .4em 1.1em;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.dur-btn:hover { color: var(--ink); }
+.dur-btn:focus-visible { outline: 3px solid var(--amber-deep); outline-offset: 2px; }
+.dur-btn.is-active {
+  color: #fff;
+  background: linear-gradient(180deg, var(--amber), var(--amber-deep));
+  border-color: transparent;
+  box-shadow: 0 6px 14px rgba(193,112,46,0.35);
+}
 
 .hud { display: flex; gap: 1.5rem; justify-content: center; margin-bottom: 1.75rem; }
 .hud-item { display: flex; flex-direction: column; align-items: center; min-width: 70px; }
@@ -115,6 +271,17 @@ body {
 .result-label { color: var(--ink-soft); font-size: .9rem; }
 .results-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
 
+/* ===================== IDLE MOTION ===================== */
+@keyframes sunPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%      { transform: scale(1.06); opacity: .92; }
+}
+@keyframes sway {
+  0%, 100% { transform: rotate(-1.6deg); }
+  50%      { transform: rotate(1.6deg); }
+}
+
+/* New-best celebration */
 @keyframes shimmer {
   0%   { transform: scale(0.85); opacity: 0; }
   40%  { transform: scale(1.08); opacity: 1; }
@@ -122,14 +289,6 @@ body {
   100% { transform: scale(1); opacity: 1; }
 }
 .newbest.shimmer { animation: shimmer .7s ease-out; }
-
-/* Ambient background drift */
-@keyframes drift {
-  0%   { transform: translate(0, 0) scale(1); }
-  50%  { transform: translate(2%, -1.5%) scale(1.05); }
-  100% { transform: translate(0, 0) scale(1); }
-}
-.ambient { animation: drift 18s ease-in-out infinite; }
 
 /* Sentence fade/slide in */
 @keyframes fadeIn {
@@ -146,12 +305,59 @@ body {
   animation: caretPulse 1s ease-in-out infinite;
 }
 
+/* Particle drift (set per-element via JS custom props) */
+@keyframes leafFall {
+  0%   { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+  10%  { opacity: .85; }
+  90%  { opacity: .85; }
+  100% { transform: translate(var(--dx, 60px), 102vh) rotate(var(--rot, 540deg)); opacity: 0; }
+}
+@keyframes sporeRise {
+  0%   { transform: translate(0, 0); opacity: 0; }
+  15%  { opacity: .85; }
+  85%  { opacity: .7; }
+  100% { transform: translate(var(--dx, 40px), -104vh); opacity: 0; }
+}
+
+/* ===================== INTRO ===================== */
+@keyframes introSky   { from { opacity: 0; } to { opacity: 1; } }
+@keyframes introSun   { from { opacity: 0; transform: translateY(40px) scale(.7); }
+                        to   { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes introRise  { from { opacity: 0; transform: translateY(60px); }
+                        to   { opacity: 1; transform: translateY(0); } }
+@keyframes introGrow  { from { opacity: 0; transform: scaleY(0); }
+                        to   { opacity: 1; transform: scaleY(1); } }
+@keyframes introCard  { from { opacity: 0; transform: translateY(24px) scale(.97); }
+                        to   { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes introWord  { from { opacity: 0; transform: translateY(12px); }
+                        to   { opacity: 1; transform: translateY(0); } }
+
+.intro .sky        { animation: introSky 1s ease-out both; }
+.intro .sun        { animation: introSun 1.4s ease-out .3s both, sunPulse 9s ease-in-out 1.7s infinite; }
+.intro .hills-far  { animation: introRise 1s ease-out .35s both; }
+.intro .hills-mid  { animation: introRise 1s ease-out .5s both; }
+.intro .hills-near { animation: introRise 1s ease-out .8s both; }
+.intro .trees {
+  transform-origin: bottom center;
+  animation: introGrow .9s cubic-bezier(.2,.8,.3,1.2) .65s both;
+}
+.intro .grass      { animation: introRise .9s ease-out .9s both; }
+.intro .card       { animation: introCard 1s ease-out 1.1s both; }
+.intro .title span { animation: introWord .7s ease-out both; }
+.intro .title span:nth-child(1) { animation-delay: 1.35s; }
+.intro .title span:nth-child(2) { animation-delay: 1.5s; }
+
+/* ===================== REDUCED MOTION ===================== */
 @media (prefers-reduced-motion: reduce) {
-  .ambient,
+  .sun, .tree, .blade,
   .sentence.fade-in,
   .newbest.shimmer,
-  .sentence .char.current {
+  .sentence .char.current,
+  .intro .sky, .intro .sun, .intro .hills-far, .intro .hills-mid,
+  .intro .hills-near, .intro .trees, .intro .grass, .intro .card,
+  .intro .title span {
     animation: none !important;
   }
   .btn { transition: none; }
+  .intro .card, .intro .title span { opacity: 1; transform: none; }
 }

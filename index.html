@@ -6,20 +6,106 @@
   <title>Cozy Typing</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
-  <div class="ambient" aria-hidden="true"></div>
+<body class="intro">
+  <!-- ===== BotW-style scene (decorative) ===== -->
+  <div class="scene" aria-hidden="true">
+    <div class="sky"></div>
+    <div class="sun"></div>
+
+    <!-- Far hills -->
+    <svg class="layer hills-far" viewBox="0 0 1440 320" preserveAspectRatio="none">
+      <path d="M0,200 C220,120 420,170 640,150 C900,126 1100,180 1440,140 L1440,320 L0,320 Z"></path>
+    </svg>
+
+    <!-- Mid hills -->
+    <svg class="layer hills-mid" viewBox="0 0 1440 320" preserveAspectRatio="none">
+      <path d="M0,240 C260,180 480,230 760,210 C1020,192 1240,236 1440,210 L1440,320 L0,320 Z"></path>
+    </svg>
+
+    <!-- Tree line. Position lives on the outer <g> attribute; the CSS sway
+         animation lives on the inner <g> so its `transform` can't clobber the
+         translate (a CSS transform overrides an SVG transform attribute). -->
+    <svg class="layer trees" viewBox="0 0 1440 320" preserveAspectRatio="xMidYMax meet">
+      <g transform="translate(150,250)">
+        <g class="tree" style="--d:0s">
+          <rect class="trunk" x="-7" y="-44" width="14" height="60"></rect>
+          <ellipse class="canopy" cx="0" cy="-70" rx="52" ry="58"></ellipse>
+          <ellipse class="canopy hi" cx="-16" cy="-86" rx="30" ry="32"></ellipse>
+        </g>
+      </g>
+      <g transform="translate(360,262) scale(.8)">
+        <g class="tree" style="--d:.6s">
+          <rect class="trunk" x="-7" y="-44" width="14" height="60"></rect>
+          <ellipse class="canopy" cx="0" cy="-70" rx="50" ry="56"></ellipse>
+          <ellipse class="canopy hi" cx="14" cy="-84" rx="28" ry="30"></ellipse>
+        </g>
+      </g>
+      <g transform="translate(1080,250) scale(1.15)">
+        <g class="tree" style="--d:.3s">
+          <rect class="trunk" x="-7" y="-44" width="14" height="60"></rect>
+          <ellipse class="canopy" cx="0" cy="-72" rx="56" ry="62"></ellipse>
+          <ellipse class="canopy hi" cx="-18" cy="-90" rx="32" ry="34"></ellipse>
+        </g>
+      </g>
+      <g transform="translate(1290,264) scale(.72)">
+        <g class="tree" style="--d:.9s">
+          <rect class="trunk" x="-7" y="-44" width="14" height="60"></rect>
+          <ellipse class="canopy" cx="0" cy="-70" rx="48" ry="54"></ellipse>
+          <ellipse class="canopy hi" cx="12" cy="-84" rx="26" ry="28"></ellipse>
+        </g>
+      </g>
+      <g transform="translate(720,272) scale(.6)">
+        <g class="tree" style="--d:.45s">
+          <rect class="trunk" x="-7" y="-44" width="14" height="60"></rect>
+          <ellipse class="canopy" cx="0" cy="-68" rx="46" ry="52"></ellipse>
+          <ellipse class="canopy hi" cx="-12" cy="-82" rx="24" ry="26"></ellipse>
+        </g>
+      </g>
+    </svg>
+
+    <!-- Near hill -->
+    <svg class="layer hills-near" viewBox="0 0 1440 320" preserveAspectRatio="none">
+      <path d="M0,270 C300,236 560,280 860,262 C1120,248 1280,284 1440,266 L1440,320 L0,320 Z"></path>
+    </svg>
+
+    <!-- Foreground grass blades -->
+    <div class="grass">
+      <span class="blade" style="--i:0"></span>
+      <span class="blade" style="--i:1"></span>
+      <span class="blade" style="--i:2"></span>
+      <span class="blade" style="--i:3"></span>
+      <span class="blade" style="--i:4"></span>
+      <span class="blade" style="--i:5"></span>
+      <span class="blade" style="--i:6"></span>
+      <span class="blade" style="--i:7"></span>
+      <span class="blade" style="--i:8"></span>
+      <span class="blade" style="--i:9"></span>
+      <span class="blade" style="--i:10"></span>
+      <span class="blade" style="--i:11"></span>
+    </div>
+
+    <!-- JS-spawned leaves & spores -->
+    <div class="particles" id="particles"></div>
+  </div>
 
   <main class="card">
     <!-- START -->
     <section id="screen-start" class="screen">
-      <h1 class="title">Cozy&nbsp;Typing</h1>
-      <p class="subtitle">Type as many sentences as you can in 60 seconds.</p>
+      <h1 class="title"><span>Cozy</span> <span>Typing</span></h1>
+      <p class="subtitle">Type as many sentences as you can before the timer runs out.</p>
       <ul class="howto">
         <li>Sentences appear one at a time — just start typing.</li>
         <li>The timer starts on your first keystroke.</li>
         <li>Backspace to fix mistakes. Chase your best WPM.</li>
       </ul>
-      <p class="best">Best: <span id="best-display">—</span></p>
+
+      <div class="duration-select" role="group" aria-label="Sprint length">
+        <span class="duration-label">Sprint</span>
+        <button class="dur-btn" data-seconds="30" type="button">30s</button>
+        <button class="dur-btn is-active" data-seconds="60" type="button">60s</button>
+      </div>
+
+      <p class="best">Best <span id="best-scope">(60s)</span>: <span id="best-display">—</span></p>
       <button id="start-btn" class="btn">Start</button>
     </section>
 
