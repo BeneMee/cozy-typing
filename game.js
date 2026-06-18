@@ -245,7 +245,7 @@ function endGame() {
   if (state.timerId) { clearInterval(state.timerId); state.timerId = null; }
   el("hidden-input").blur();
   const wpm = computeWpm();
-  const acc = computeAccuracy();
+  const acc = state.totalKeys === 0 ? 100 : computeAccuracy();
   const chars = state.correctChars;
   showScreen("results");
   finishResults(wpm, acc, chars);
