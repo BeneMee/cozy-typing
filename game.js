@@ -2,6 +2,14 @@
 
 const el = (id) => document.getElementById(id);
 
+// Treat apostrophe variants as a plain ' so German-keyboard users can type
+// don't / it's naturally: the ` and ´ keys are dead keys on QWERTZ, and the
+// sentence pack also contains curly quotes. Normalize both sides before any
+// character comparison so the right one still scores as correct.
+const APOST_RE = /[`´‘’]/g;
+const normChar = (ch) => ch.replace(APOST_RE, "'");
+const normEq = (a, b) => normChar(a) === normChar(b);
+
 const state = {
   screen: "start",
   sentence: "",
@@ -47,13 +55,42 @@ function renderSentence() {
     span.className = "char";
     span.textContent = sentence[i];
     if (i < typed.length) {
-      span.classList.add(typed[i] === sentence[i] ? "correct" : "wrong");
+      span.classList.add(normEq(typed[i], sentence[i]) ? "correct" : "wrong");
     } else if (i === typed.length) {
       span.classList.add("current");
     }
     frag.appendChild(span);
   }
   container.appendChild(frag);
+  positionKorok();
+}
+
+// ---- Korok companion ----
+// The Korok hovers over the current character and follows the caret. It hops
+// on each correct key, wobbles on a miss, and cheers when a sentence is done.
+function positionKorok() {
+  const korok = el("korok");
+  if (!korok) return;
+  const cur = el("sentence").querySelector(".char.current");
+  // No current char (sentence just completed) -> keep the last position; the
+  // next sentence loads immediately and repositions us at its first letter.
+  if (!cur) return;
+  korok.style.left = cur.offsetLeft + cur.offsetWidth / 2 + "px";
+  korok.style.top = cur.offsetTop + "px";
+}
+
+function korokReact(kind) {
+  if (reduceMotion) return;
+  const art = el("korok") && el("korok").querySelector(".korok-art");
+  if (!art) return;
+  art.classList.remove("hop", "wiggle", "cheer");
+  void art.offsetWidth; // restart the one-shot animation
+  art.classList.add(kind);
+  art.addEventListener("animationend", () => art.classList.remove(kind), { once: true });
+}
+
+function korokCheer() {
+  korokReact("cheer");
 }
 
 function loadNextSentence() {
@@ -111,7 +148,7 @@ function tick() {
 // Count a single newly-typed character against the keystroke tallies.
 function tallyKeystroke(typedChar, expectedChar) {
   state.totalKeys += 1;
-  if (typedChar === expectedChar) state.correctKeys += 1;
+  if (normEq(typedChar, expectedChar)) state.correctKeys += 1;
 }
 
 // Recompute correctChars: count of currently-correct chars in finished work.
@@ -122,7 +159,7 @@ let completedCorrectChars = 0; // correct chars banked from finished sentences
 function currentCorrectPrefix() {
   let n = 0;
   for (let i = 0; i < state.typed.length && i < state.sentence.length; i++) {
-    if (state.typed[i] === state.sentence[i]) n += 1;
+    if (normEq(state.typed[i], state.sentence[i])) n += 1;
     else break;
   }
   return n;
@@ -142,6 +179,9 @@ function handleInput(value) {
     for (let i = prev.length; i < next.length; i++) {
       tallyKeystroke(next[i], state.sentence[i]);
     }
+    // Korok reacts to the latest keystroke: hop on a hit, wobble on a miss.
+    const last = next.length - 1;
+    korokReact(normEq(next[last], state.sentence[last]) ? "hop" : "wiggle");
   }
 
   state.typed = next;
@@ -155,10 +195,12 @@ function handleInput(value) {
   // Update running correctChars (banked + current correct prefix).
   state.correctChars = completedCorrectChars + currentCorrectPrefix();
 
-  // Advance when the sentence is exactly and fully typed.
-  if (state.typed === state.sentence) {
+  // Advance when the sentence is fully typed (apostrophe variants count).
+  if (state.typed.length === state.sentence.length &&
+      normChar(state.typed) === normChar(state.sentence)) {
     completedCorrectChars += state.sentence.length;
     state.correctChars = completedCorrectChars;
+    korokCheer();
     loadNextSentence();
     el("hidden-input").value = "";
   }

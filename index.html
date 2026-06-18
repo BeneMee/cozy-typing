@@ -116,7 +116,32 @@
         <div class="hud-item"><span class="hud-num" id="live-wpm">0</span><span class="hud-label">wpm</span></div>
         <div class="hud-item"><span class="hud-num" id="live-acc">100</span><span class="hud-label">% acc</span></div>
       </div>
-      <p id="sentence" class="sentence"></p>
+      <div class="sentence-wrap">
+        <!-- Korok companion: hovers over the current letter, follows the caret. -->
+        <div id="korok" class="korok" aria-hidden="true">
+          <div class="korok-bob">
+            <div class="korok-art">
+              <svg viewBox="0 0 40 50" width="34" height="42">
+                <!-- little wooden legs -->
+                <rect class="k-leg" x="13.5" y="40" width="4" height="8" rx="2"></rect>
+                <rect class="k-leg" x="22.5" y="40" width="4" height="8" rx="2"></rect>
+                <!-- round wooden body -->
+                <ellipse class="k-body" cx="20" cy="34" rx="12" ry="11"></ellipse>
+                <ellipse class="k-body-hi" cx="15.5" cy="30" rx="4.5" ry="3.5"></ellipse>
+                <!-- leaf face -->
+                <path class="k-leaf" d="M20 2 C30 11 30 24 20 31 C10 24 10 11 20 2 Z"></path>
+                <path class="k-leaf-hi" d="M20 4 C26 11 26 21 20 27 C20 21 20 11 20 4 Z"></path>
+                <line class="k-rib" x1="20" y1="6" x2="20" y2="28"></line>
+                <!-- face: two dot eyes + small mouth -->
+                <circle class="k-eye" cx="16" cy="17" r="1.9"></circle>
+                <circle class="k-eye" cx="24" cy="17" r="1.9"></circle>
+                <ellipse class="k-mouth" cx="20" cy="22.5" rx="1.7" ry="2.3"></ellipse>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <p id="sentence" class="sentence"></p>
+      </div>
       <input id="hidden-input" class="hidden-input" type="text" autocomplete="off"
              autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="Type here" />
       <p class="hint">Click here if typing stops registering.</p>

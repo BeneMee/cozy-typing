@@ -6,11 +6,13 @@
   --ink-soft: #856b51;
   --amber: #e3963f;
   --amber-deep: #c1702e;
-  --correct: #5b8a3c;
-  --wrong: #cf5a4e;
-  --muted: #b9a684;
+  --correct: #5e9a48;          /* fresh leaf-green, echoes the scene */
+  --wrong: #bd6238;            /* muted sunset terracotta, not harsh red */
+  --muted: #c1a473;            /* warm sepia for untyped text */
   --radius: 26px;
   --font: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  /* Warm rounded slab for the sentence — woody & cozy, websafe, offline. */
+  --font-type: "Rockwell", "Roboto Slab", "Bookman Old Style", "Iowan Old Style", Georgia, serif;
 
   /* Scene (BotW golden-hour) */
   --sky-top: #aee0d6;
@@ -242,10 +244,13 @@ body {
 .hud-num { font-size: 1.9rem; font-weight: bold; color: var(--amber-deep); line-height: 1; }
 .hud-label { font-size: .8rem; color: var(--ink-soft); text-transform: lowercase; }
 
+.sentence-wrap { position: relative; }
+
 .sentence {
+  font-family: var(--font-type);
   font-size: clamp(1.3rem, 3.2vw, 1.8rem);
-  line-height: 1.7;
-  letter-spacing: .3px;
+  line-height: 1.9;
+  letter-spacing: .4px;
   min-height: 4.5em;
   margin: 0 0 1rem;
 }
@@ -262,6 +267,56 @@ body {
   pointer-events: none;
 }
 .hint { color: var(--ink-soft); font-size: .85rem; opacity: .6; text-align: center; margin: 0; }
+
+/* ---- Korok companion ---- */
+.korok {
+  position: absolute;
+  left: 0; top: 0;
+  width: 34px; height: 42px;
+  transform: translate(-50%, -116%);   /* center over the char, sit above it */
+  transition: left .14s ease, top .18s ease;
+  pointer-events: none;
+  z-index: 3;
+  filter: drop-shadow(0 3px 3px rgba(70, 53, 40, .22));
+  will-change: left, top;
+}
+.korok-bob { animation: korokBob 2.6s ease-in-out infinite; transform-origin: 50% 100%; }
+.korok-art { transform-origin: 50% 100%; }
+.korok-art.hop    { animation: korokHop .26s ease-out; }
+.korok-art.wiggle { animation: korokWiggle .3s ease-in-out; }
+.korok-art.cheer  { animation: korokCheer .6s ease-out; }
+
+.k-leg     { fill: #7a5436; }
+.k-body    { fill: #b07a47; }
+.k-body-hi { fill: #c79a68; opacity: .8; }
+.k-leaf    { fill: var(--tree); }
+.k-leaf-hi { fill: var(--tree-hi); opacity: .85; }
+.k-rib     { stroke: #335a30; stroke-width: 1; opacity: .5; }
+.k-eye     { fill: #2c2016; }
+.k-mouth   { fill: #2c2016; }
+
+@keyframes korokBob {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50%      { transform: translateY(-2px) rotate(1.5deg); }
+}
+@keyframes korokHop {
+  0%   { transform: translateY(0) scale(1, 1); }
+  35%  { transform: translateY(-9px) scale(.94, 1.08); }
+  70%  { transform: translateY(0) scale(1.06, .94); }
+  100% { transform: translateY(0) scale(1, 1); }
+}
+@keyframes korokWiggle {
+  0%, 100% { transform: translateX(0) rotate(0); }
+  25%      { transform: translateX(-3px) rotate(-7deg); }
+  75%      { transform: translateX(3px) rotate(7deg); }
+}
+@keyframes korokCheer {
+  0%   { transform: translateY(0) rotate(0); }
+  30%  { transform: translateY(-14px) rotate(-6deg); }
+  55%  { transform: translateY(-4px) rotate(5deg); }
+  80%  { transform: translateY(-9px) rotate(-3deg); }
+  100% { transform: translateY(0) rotate(0); }
+}
 
 .results-title { font-size: 2rem; margin: 0 0 .5em; text-align: center; }
 .newbest { text-align: center; color: var(--amber-deep); font-size: 1.2rem; margin-bottom: 1rem; }
@@ -353,11 +408,13 @@ body {
   .sentence.fade-in,
   .newbest.shimmer,
   .sentence .char.current,
+  .korok-bob, .korok-art,
   .intro .sky, .intro .sun, .intro .hills-far, .intro .hills-mid,
   .intro .hills-near, .intro .trees, .intro .grass, .intro .card,
   .intro .title span {
     animation: none !important;
   }
+  .korok { transition: none; }   /* still follows the caret, just no glide/hop */
   .btn { transition: none; }
   .intro .card, .intro .title span { opacity: 1; transform: none; }
 }
