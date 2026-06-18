@@ -113,7 +113,7 @@ const SENTENCES = [
   "She wore her father's old sweater all through winter.",
   "The lake was a perfect mirror in the early calm.",
   "We left the window open to listen to the storm.",
-  "The little café kept one table just for regulars.",
+  "The little cafe kept one table just for regulars.",
   "He saved string and buttons in a battered tin box.",
   "The trail ended at a quiet, sunlit clearing.",
   "She baked an extra loaf to leave on a neighbor's step.",
